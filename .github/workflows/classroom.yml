@@ -1,0 +1,50 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Test coincidencia
+      id: test-coincidencia
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test coincidencia
+        setup-command: sudo -H pip3 install pytest
+        command: python main.py
+        timeout: 10
+        max-score: 16
+    - name: Test constructores
+      id: test-constructores
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test constructores
+        setup-command: sudo -H pip3 install pytest
+        command: pytest testConstructores.py
+        timeout: 10
+        max-score: 17
+    - name: Test metodos
+      id: test-metodos
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test metodos
+        setup-command: sudo -H pip3 install pytest
+        command: pytest testMetodos.py
+        timeout: 10
+        max-score: 17
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST-COINCIDENCIA_RESULTS: "${{steps.test-coincidencia.outputs.result}}"
+        TEST-CONSTRUCTORES_RESULTS: "${{steps.test-constructores.outputs.result}}"
+        TEST-METODOS_RESULTS: "${{steps.test-metodos.outputs.result}}"
+      with:
+        runners: test-coincidencia,test-constructores,test-metodos
